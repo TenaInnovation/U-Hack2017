@@ -1,0 +1,161 @@
+﻿Version=6
+NumberOfModules=13
+Module1=Starter
+Module2=Global_declaration
+Module3=frmMain
+Module4=frmDriverMenu
+Module5=frmPayByQR
+Module6=ClsSlidingSidebar
+Module7=frmViewBalance
+Module8=frmTransactions
+Module9=frmPayment
+Module10=frmFindPUV
+Module11=QRcode
+Module12=frmPUVLocation
+Module13=EditBox
+Build1=UHACK,b4a.UHACK
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: http://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="8"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~'End of default text.~\n~
+IconFile=
+NumberOfFiles=15
+File1=balance_icon.png
+File2=find_puv_icon.png
+File3=frmFindPUV.bal
+File4=frmPayment.bal
+File5=frmTransactions.bal
+File6=frmViewBalance.bal
+File7=Generic_Background.jpg
+File8=location_map.htm
+File9=LoginLayout.bal
+File10=Main Form.jpg
+File11=menu.png
+File12=qr_icon.png
+File13=trans_log_icon.png
+File14=transaction.png
+File15=Uhack.jpg
+NumberOfLibraries=7
+Library1=core
+Library2=mysql
+Library3=phone
+Library4=reflection
+Library5=stringfunctions
+Library6=abzxing
+Library7=rsimageprocessing
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: Unified
+	#VersionCode: 1
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: portrait
+	#CanInstallToExternalStorage: true	
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: true	
+	#IncludeTitle: false	
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.
+	
+	Dim sql As MysqlHandler
+	Dim sqlResult As ResultSet
+	
+	
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	'These variables can only be accessed from this module.
+	
+	Dim isReconnect As Int
+	
+	Private btnLogin As Button
+	Private txtPassword As EditText
+	Private txtUsername As EditText
+	
+	Dim cd As ColorDrawable
+	Dim cd2 As ColorDrawable
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	'Do not forget to load the layout file created with the visual designer. For example:
+	'Activity.LoadLayout("Layout1")
+	Activity.SetBackgroundImage(LoadBitmap(File.DirAssets,"Main Form.jpg"))
+	ConnectToDatabaseServer
+End Sub
+
+Sub ConnectToDatabaseServer
+	
+	sql.Initialize("172.16.5.186","ueon_app","root","12345")
+	If sql.isConnected = True Then
+		ProgressDialogHide
+		'Msgbox("CONNECTED","")
+			InitializeView
+		
+	Else
+		
+		isReconnect = Msgbox2("Do you want to reconnect to the server ?" , "Connection Failed","Yes","","No",Null)
+		If isReconnect = DialogResponse.POSITIVE Then
+			ProgressDialogShow2("Reconnecting",False)
+			ConnectToDatabaseServer
+		Else
+			Activity.Finish	
+		End If
+	End If
+End Sub
+
+Sub InitializeView
+	cd.Initialize2(Colors.White,7%y,1%y,Colors.RGB(254,155,9))
+	cd2.Initialize2(Colors.Gray,7%y,0%y,Colors.White)
+
+	'Activity.LoadLayout("LogInLayout")
+	'[1] This code is responsible for holdin the username
+	txtUsername.Initialize("")
+	txtUsername.Gravity = Gravity.CENTER
+	txtUsername.Hint="Enter username"
+	txtUsername.Background=cd
+	Activity.AddView(txtUsername,10%x,43%y,80%x,7%y)
+	
+	'[2] This code holds the password
+	txtPassword.Initialize("")
+	txtPassword.PasswordMode = True
+	txtPassword.Gravity = Gravity.CENTER
+	txtPassword.Hint="Enter Password"
+	txtPassword.Background=cd
+	Activity.AddView(txtPassword,10%x,53%y,80%x,7%y)
+	
+	'[3]This should dislay the button
+	btnLogin.Initialize("btnLogin")
+	btnLogin.Gravity=Gravity.CENTER
+	btnLogin.Text="LOGIN"
+	btnLogin.Background=cd2
+	Activity.AddView(btnLogin,20%x,63%y,60%x,7%y)
+
+End Sub
+
+
+
+
+Sub Activity_Resume
+
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+
+End Sub
+
+
+Sub btnLogin_Click
+	sqlResult = sql.Query("Select * from EON_Registration where username = '"& txtUsername.Text &"' and userpassword = '"& txtPassword.Text &"'")
+	
+	If sqlResult.RowCount > 0 Then
+		Msgbox("Log in Success","")
+		Global_declaration.username = txtUsername.Text
+
+			StartActivity(frmMain)
+	Else
+		Msgbox("Failed to login","")
+	End If
+End Sub
